@@ -1,0 +1,108 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+	body { @apply bg-[#0e0e10] text-slate-100; }
+	body.light { @apply bg-white text-slate-800; }
+}
+
+/* Custom overrides or layer additions can go here */
+@layer utilities {
+	.anim-pop { animation: pop-in 220ms cubic-bezier(.34,1.56,.64,1); }
+	.anim-fade-scale { animation: fade-scale 160ms ease-out; }
+	.anim-flip { animation: flip-in 600ms both; transform-style: preserve-3d; }
+	.animate-fade-fail { animation: fail-fade 900ms ease-in-out 50ms both; }
+	.anim-delay-1 { animation-delay: 60ms; }
+	.anim-delay-2 { animation-delay: 120ms; }
+	.anim-delay-3 { animation-delay: 180ms; }
+	.anim-delay-4 { animation-delay: 240ms; }
+	.anim-delay-5 { animation-delay: 300ms; }
+	.anim-shake { animation: shake .6s cubic-bezier(.36,.07,.19,.97) both; }
+	.wordle-correct { @apply bg-[#6aaa64] border-[#6aaa64] text-white; }
+	.wordle-present { @apply bg-[#c9b458] border-[#c9b458] text-white; }
+	.wordle-absent { @apply bg-[#3a3a3c] border-[#3a3a3c] text-white; }
+	.wordle-empty { @apply bg-[#121213] border-[#3a3a3c] text-white; }
+	body.light .wordle-empty { @apply bg-white border-slate-300 text-slate-900; }
+	body.light .wordle-correct { @apply bg-[#6aaa64] border-[#6aaa64] text-white; }
+	body.light .wordle-present { @apply bg-[#c9b458] border-[#c9b458] text-white; }
+	body.light .wordle-absent { @apply bg-slate-300 border-slate-300 text-slate-500; }
+
+	/* Cartoon / playful styling additions */
+	.cartoon-tile { @apply relative border-2 rounded-lg font-extrabold uppercase tracking-wide transition-transform; box-shadow: 0 3px 0 0 rgba(0,0,0,0.85), 0 3px 6px -2px rgba(0,0,0,0.6); background-image: linear-gradient(145deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.05) 55%, rgba(0,0,0,0.15) 100%); }
+	.cartoon-key { @apply relative border-2 rounded-md font-bold transition-transform text-xs; box-shadow: 0 3px 0 0 rgba(0,0,0,0.75); background-image: linear-gradient(160deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 60%); }
+	.cartoon-tile:active, .cartoon-key:active { transform: translateY(2px); box-shadow: 0 1px 0 0 rgba(0,0,0,0.75); }
+	.cartoon-correct { @apply bg-green-500 border-green-600 text-white; }
+	.cartoon-present { @apply bg-amber-400 border-amber-500 text-slate-900; }
+	.cartoon-absent { @apply bg-slate-500 border-slate-600 text-slate-100; }
+	.cartoon-empty { @apply bg-slate-800 border-slate-700 text-slate-300; }
+	body.light .cartoon-empty { @apply bg-white border-slate-300 text-slate-700; }
+	body.light .cartoon-absent { @apply bg-slate-300 border-slate-400 text-slate-600; }
+	body.light .cartoon-present { @apply bg-amber-300 border-amber-400 text-slate-800; }
+	body.light .cartoon-correct { @apply bg-green-400 border-green-500 text-white; }
+
+		/* Simplified shaded style (subtle darker underlay + outline) */
+		.shade-tile { @apply relative font-extrabold uppercase tracking-wide rounded-md border; }
+		.shade-key { @apply relative font-bold rounded border text-xs; }
+		.shade-layer::after { content:""; position:absolute; inset:2px 2px -4px 2px; }
+		.shade-correct { @apply bg-[#6aaa64] border-[#5d9958]; }
+		.shade-present { @apply bg-[#c9b458] border-[#b3a148]; }
+		.shade-absent { @apply bg-[#3a3a3c] border-[#2c2c2d]; }
+		.shade-empty { @apply bg-[#121213] border-[#3a3a3c]; }
+			body.light .shade-empty { @apply bg-white border-slate-200; }
+			body.light .shade-correct { @apply bg-[#7cbc72] border-[#62a25d]; }
+			body.light .shade-present { @apply bg-[#d8c062] border-[#bfa84f]; }
+			body.light .shade-absent { @apply bg-slate-200 border-slate-300; }
+			/* Force readable dark text */
+			body.light .shade-tile, body.light .shade-key,
+			body.light .shade-correct, body.light .shade-present,
+			body.light .shade-empty, body.light .shade-absent { @apply text-slate-900; }
+		/* Underlay pseudo-element for subtle downward shading */
+		.shade-outer { position:relative; }
+				.shade-outer::before { content:""; position:absolute; inset:0; border-radius:inherit; background:rgba(0,0,0,0.32); transform:translateY(-3px); z-index:0; filter:brightness(.45); }
+				body.light .shade-outer::before { background:rgba(0,0,0,0.18); filter:brightness(.75); }
+		.shade-outer > * { position:relative; z-index:1; }
+}
+
+@keyframes pop-in {
+	0% { transform: scale(.6); opacity:0; }
+	60% { transform: scale(1.05); opacity:1; }
+	100% { transform: scale(1); opacity:1; }
+}
+@keyframes fade-scale {
+	0% { transform: scale(.9); opacity:0; }
+	100% { transform: scale(1); opacity:1; }
+}
+
+@keyframes flip-in {
+	0% { transform: rotateX(0); }
+	40% { transform: rotateX(90deg); }
+	60% { transform: rotateX(90deg); }
+	100% { transform: rotateX(0); }
+}
+
+@keyframes shake {
+	10%, 90% { transform: translateX(-2px); }
+	20%, 80% { transform: translateX(4px); }
+	30%, 50%, 70% { transform: translateX(-6px); }
+	40%, 60% { transform: translateX(6px); }
+}
+
+@keyframes fail-fade {
+  0% { filter: brightness(1) saturate(1); }
+  40% { filter: brightness(.95) saturate(.8); }
+  60% { filter: brightness(.85) saturate(.6); }
+  100% { filter: brightness(.75) saturate(.5); }
+}
+
+@layer utilities {
+	.glass-panel { @apply bg-white/5 dark:bg-white/5 backdrop-blur-md border border-white/10 dark:border-white/10 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.5)] rounded-xl; }
+	.surface-gradient { background: linear-gradient(145deg, rgba(30,41,59,0.85) 0%, rgba(15,23,42,0.85) 60%, rgba(17,24,39,0.85) 100%); }
+	.accent-ring { box-shadow: 0 0 0 1px rgba(99,102,241,0.4), 0 0 0 4px rgba(99,102,241,0.15); }
+	.pattern-grid { background-image: linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px); background-size: 40px 40px; }
+	.heading-display { font-family: 'Orbitron', 'Inter', system-ui, sans-serif; letter-spacing: .5px; }
+  .wordle-bg { background-color: #121213; }
+	.section-band { position: relative; }
+	.section-band::before { content:""; position:absolute; inset:0; background:linear-gradient(to bottom, rgba(255,255,255,0.02), transparent 60%); pointer-events:none; }
+	html { scroll-behavior: smooth; }
+}
