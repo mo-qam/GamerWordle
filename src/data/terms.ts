@@ -77,8 +77,29 @@ export const ECONOMY: TermCategory = {
   ]
 };
 
+// Average gamer friendly recognizable franchises / genre terms (5-letter focus for puzzle pool)
+export const AVERAGE_GAMER: TermCategory = {
+  id: 'avg',
+  label: 'Average Gamer Terms',
+  words: [
+    // Widely-known, strictly 5-letter, non-IP gaming terms
+    'games','level','score','quest','armor','skill','guild','timer','patch','event','combo','retro','pixel','spawn','power','loots','party','grind','steam','arena','alien','ninja','block','board','enemy','magic','input','mouse','audio','pause','start','rules','items','point','round','stage','lobby','title','speed','bonus','clear','enter','equip','fight','final','input','logic','match','music','pause','press','reset','share','shoot','skill','sound','space','stack','stats','super','table','theme','track','trial','value','video','world','zones'
+  ]
+};
+
+// Hardcore / niche genre & mechanics vocabulary (favor 5-letter valid tokens)
+export const HARDCORE_GAMER: TermCategory = {
+  id: 'hard',
+  label: 'Hardcore Gamer Terms',
+  words: [
+    // Widely-known, strictly 5-letter, genre/mechanics terms (no slang, no obscure)
+    'parry','dodge','souls','rogue','build','macro','micro','frame','glass','reset','burst','stack','greed','choke','aggro','strat','block','guard','input','macro','melee','racer','score','shoot','skill','speed','split','steal','sweep','sword','tanks','timer','track','trick','ultra','zones','arena','combo','event','final','grind','logic','match','music','pause','press','share','sound','space','stats','super','table','theme','trial','value','video','world'
+  ]
+};
+
 export const ALL_CATEGORIES: TermCategory[] = [
-  WEAPONS,DAMAGE_TYPES,MECHANICS,ROLES,VERBS,QUALIFIERS,ATTRIBUTES,STATUS,ECONOMY
+  WEAPONS,DAMAGE_TYPES,MECHANICS,ROLES,VERBS,QUALIFIERS,ATTRIBUTES,STATUS,ECONOMY,
+  AVERAGE_GAMER,HARDCORE_GAMER
 ];
 
 export type PlaceholderId = TermCategory['id'];

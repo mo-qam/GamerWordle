@@ -62,6 +62,16 @@
 				.shade-outer::before { content:""; position:absolute; inset:0; border-radius:inherit; background:rgba(0,0,0,0.32); transform:translateY(-3px); z-index:0; filter:brightness(.45); }
 				body.light .shade-outer::before { background:rgba(0,0,0,0.18); filter:brightness(.75); }
 		.shade-outer > * { position:relative; z-index:1; }
+		/* Generic shaded button variants */
+		.shade-btn { @apply shade-outer relative font-semibold rounded-md border text-xs px-3 py-2 transition active:scale-95 select-none; }
+		.shade-btn-primary { @apply shade-btn bg-indigo-600 border-indigo-500 text-white hover:brightness-110; }
+		.shade-btn-neutral { @apply shade-btn bg-[#3a3a3c] border-[#2c2c2d] text-slate-200 hover:brightness-110; }
+		.shade-btn-accent { @apply shade-btn bg-[#c9b458] border-[#b3a148] text-slate-900 hover:brightness-105; }
+		.shade-btn-danger { @apply shade-btn bg-rose-600 border-rose-500 text-white hover:brightness-110; }
+		body.light .shade-btn-neutral { @apply bg-slate-200 border-slate-300 text-slate-800; }
+		body.light .shade-btn-primary { @apply bg-indigo-500 border-indigo-400; }
+		body.light .shade-btn-accent { @apply bg-[#d8c062] border-[#bfa84f]; }
+		body.light .shade-btn-danger { @apply bg-rose-500 border-rose-400; }
 }
 
 @keyframes pop-in {

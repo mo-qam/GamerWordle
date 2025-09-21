@@ -1,4 +1,6 @@
 import { ALL_CATEGORIES } from '../data/terms';
+import { CATEGORY_WORDS } from '../data/categoryWords';
+import { DAILY_WORDLE_POOL } from '../data/dailyWordlePool';
 import { seedHash, mulberry32 } from './rng';
 
 export interface DailyGamerWord {
@@ -11,21 +13,19 @@ export interface DailyGamerWord {
   maxGuesses: number;
 }
 
-// Build candidate list (unique 5-letter alphabetic) and map to first category containing it.
+// Build word-to-category map from CATEGORY_WORDS
 const wordToCategory: Record<string,{id:string;label:string}> = {};
-const candidatesSet = new Set<string>();
 for(const cat of ALL_CATEGORIES){
-  for(const w of cat.words){
-    if(/^[a-zA-Z]{5}$/.test(w)){
-      const lower = w.toLowerCase();
-      if(!candidatesSet.has(lower)){
-        candidatesSet.add(lower);
-        wordToCategory[lower] = { id: cat.id, label: cat.label };
-      }
+  const words = CATEGORY_WORDS[cat.id] || [];
+  for(const w of words){
+    const lower = w.toLowerCase();
+    if(!wordToCategory[lower]){
+      wordToCategory[lower] = { id: cat.id, label: cat.label };
     }
   }
 }
-export const GAMER_WORD_CANDIDATES = Array.from(candidatesSet.values());
+
+export const GAMER_WORD_CANDIDATES = DAILY_WORDLE_POOL;
 
 export const GAMER_WORD_LENGTH = 5;
 export const GAMER_WORD_MAX_GUESSES = 6;

@@ -24,6 +24,24 @@ export const App: React.FC = () => {
   const [showWin, setShowWin] = useState(false);
   const [currentInput, setCurrentInput] = useState('');
   const [slState, setSlState] = useState(()=> loadStreakLevel());
+  // Countdown to next daily (UTC midnight)
+  const [countdown, setCountdown] = useState<string>('');
+  React.useEffect(()=>{
+    function compute(){
+      const now = new Date();
+      const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()+1, 0,0,0,0));
+      const diff = next.getTime() - now.getTime();
+      if(diff <= 0){ setCountdown('00:00:00'); return; }
+      const hrs = Math.floor(diff/3600000);
+      const mins = Math.floor((diff%3600000)/60000);
+      const secs = Math.floor((diff%60000)/1000);
+      const pad = (n:number)=> n.toString().padStart(2,'0');
+      setCountdown(`${pad(hrs)}:${pad(mins)}:${pad(secs)}`);
+    }
+    compute();
+    const id = setInterval(compute, 1000);
+    return ()=> clearInterval(id);
+  }, []);
   React.useEffect(()=>{ initSfxPreference().then(()=> setSfxEnabledState(getSfxEnabled())); }, []);
   React.useEffect(()=>{
     const root = document.documentElement;
@@ -76,23 +94,17 @@ export const App: React.FC = () => {
       playSfx('guessMiss');
       return;
     }
-    const wasSolved = gamerGame.solved;
-    if(currentInput === gamerGame.answer){
+    if(result.solvedNow){
       playSfx('guessHit');
+      setSlState(prev => {
+        const updated = awardForPuzzle(prev, gamerGame.dateKey, true, gamerGame.guesses.length + 1, gamerGame.maxGuesses);
+        saveStreakLevel(updated);
+        return updated;
+      });
     } else {
       playSfx('guessMiss');
     }
     setCurrentInput('');
-    // After a short timeout (state update), if solved newly, award.
-    setTimeout(()=>{
-      if(!wasSolved && gamerGame.solved){
-        setSlState(prev => {
-          const updated = awardForPuzzle(prev, gamerGame.dateKey, true, gamerGame.guesses.length, gamerGame.maxGuesses);
-          saveStreakLevel(updated);
-          return updated;
-        });
-      }
-    }, 30);
   }
   return (
   <div className="min-h-screen wordle-bg text-white font-sans transition-colors relative overflow-x-hidden">
@@ -114,6 +126,11 @@ export const App: React.FC = () => {
           <div className="absolute -bottom-1 left-[5.2rem] md:left-[5.6rem] right-0 h-px bg-gradient-to-r from-indigo-400/70 via-fuchsia-400/60 to-transparent pointer-events-none hidden md:block" />
           <div className="flex gap-1.5 md:gap-2 items-center ml-auto flex-nowrap md:whitespace-nowrap mt-2 md:mt-0">
           {endless && <span className="px-2 py-1 rounded-md bg-indigo-600/70 text-[0.55rem] font-semibold tracking-wide uppercase text-indigo-50 border border-indigo-400/40">Endless</span>}
+          {!endless && countdown && (
+            <span className="px-2 py-1 rounded-md bg-slate-700/60 text-[0.55rem] font-semibold tracking-wide uppercase text-slate-200 border border-slate-500/40" title="Next Daily (UTC)">
+              Next: {countdown}
+            </span>
+          )}
           <div className="flex items-center gap-1.5 text-[0.52rem] font-semibold tracking-wide bg-slate-700/50 dark:bg-slate-700/60 px-1.5 py-1 rounded border border-slate-500/40">
             <div className="flex flex-col items-center leading-none">
               <span>STREAK</span>
@@ -128,18 +145,18 @@ export const App: React.FC = () => {
               <div className="h-full bg-gradient-to-r from-brand to-brand-dark" style={{ width: `${Math.min(100, (slState.xp / levelXpRequirement(slState.level)) * 100)}%` }} />
             </div>
           </div>
-          <button onClick={()=>setTheme(t=> t==='dark'?'light':'dark')} className="flex items-center gap-1 rounded-md border border-slate-300 dark:border-slate-600/60 bg-white/70 dark:bg-slate-800/60 backdrop-blur px-3 py-1.5 text-[0.7rem] tracking-wide text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700/60 active:scale-[0.96] transition-all order-3 md:order-none">
-            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <button onClick={()=>setTheme(t=> t==='dark'?'light':'dark')} className="shade-btn-neutral flex items-center gap-1 order-3 md:order-none">
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               {theme==='dark'? <circle cx="12" cy="12" r="5" /> : <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />}
             </svg>
             {theme==='dark'?'Light':'Dark'}
           </button>
-          <button onClick={()=>{ setShowStats(s=>!s); playSfx(showStats? 'modalClose':'modalOpen'); }} className="flex items-center gap-1 rounded-md border border-slate-300 dark:border-slate-600/60 bg-white/70 dark:bg-slate-800/60 backdrop-blur px-3 py-1.5 text-[0.7rem] tracking-wide text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700/60 active:scale-[0.96] transition-all order-1 md:order-none">
-            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20v-6"/><path d="M6 20V10"/><path d="M18 20V4"/></svg>
+          <button onClick={()=>{ setShowStats(s=>!s); playSfx(showStats? 'modalClose':'modalOpen'); }} className="shade-btn-neutral flex items-center gap-1 order-1 md:order-none">
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20v-6"/><path d="M6 20V10"/><path d="M18 20V4"/></svg>
             Stats
           </button>
-          <button onClick={()=>{ const next = !sfxEnabled; setSfxEnabled(next); setSfxEnabledState(next); playSfx('hintReveal'); }} className={`flex items-center gap-1 rounded-md border border-slate-300 dark:border-slate-600/60 px-3 py-1.5 text-[0.7rem] tracking-wide transition-all active:scale-[0.96] order-2 md:order-none ${sfxEnabled? 'bg-brand text-white hover:bg-brand-dark':'bg-white/70 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700/60'}`}> 
-            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <button onClick={()=>{ const next = !sfxEnabled; setSfxEnabled(next); setSfxEnabledState(next); playSfx('hintReveal'); }} className={`flex items-center gap-1 order-2 md:order-none ${sfxEnabled? 'shade-btn-primary':'shade-btn-neutral'}`}> 
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               {sfxEnabled ? <path d="M11 5 6 9H2v6h4l5 4V5z"/> : <><path d="m2 2 20 20" /><path d="M11 5 6 9H2v6h4l5 4V5z"/></>}
             </svg>
             {sfxEnabled? 'SFX':'Muted'}
@@ -208,10 +225,11 @@ export const App: React.FC = () => {
               <h2 className="text-xl font-extrabold tracking-wide mb-2 bg-gradient-to-r from-indigo-300 via-pink-300 to-rose-300 bg-clip-text text-transparent">Puzzle Solved!</h2>
               <p className="text-sm text-slate-300 mb-4">Answer: <span className="font-semibold text-white">{gamerGame.answer.toUpperCase()}</span></p>
               <div className="flex flex-wrap gap-2 mb-4">
-                <button onClick={()=>{ const payload = buildGamerShareText(gamerGame.dateKey, gamerGame.guesses, gamerGame.states, gamerGame.solved, gamerGame.prompt); shareResult(payload); playSfx('share'); }} className="bg-brand hover:bg-brand-dark text-white font-semibold text-sm px-4 py-2 rounded-md active:scale-95 transition">Share Result</button>
-                <button onClick={()=>{ setShowWin(false); setEndless(true); gamerGame.restart(); playSfx('modalOpen'); }} className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm px-4 py-2 rounded-md active:scale-95 transition">Start Endless</button>
-                {endless && <button onClick={()=>{ gamerGame.restart(); playSfx('enterKey'); }} className="border border-slate-600 text-slate-200 hover:bg-slate-800 text-sm px-4 py-2 rounded-md active:scale-95 transition">Next Word</button>}
-                <button onClick={()=>{ setShowWin(false); }} className="border border-slate-600 text-slate-300 hover:text-white hover:bg-slate-800 text-sm px-4 py-2 rounded-md active:scale-95 transition">Close</button>
+                <button onClick={()=>{ const payload = buildGamerShareText(gamerGame.dateKey, gamerGame.guesses, gamerGame.states, gamerGame.solved, gamerGame.prompt); shareResult(payload); playSfx('share'); }} className="shade-btn-accent text-[0.75rem]">Share Result</button>
+                <button onClick={()=>{ setShowWin(false); setEndless(true); gamerGame.restart(); playSfx('modalOpen'); }} className="shade-btn-primary text-[0.75rem]">Start Endless</button>
+                {endless && <button onClick={()=>{ gamerGame.cyclePrompt(); playSfx('enterKey'); }} className="shade-btn-neutral text-[0.75rem]">New Prompt</button>}
+                {endless && <button onClick={()=>{ gamerGame.restart(); playSfx('enterKey'); }} className="shade-btn-neutral text-[0.75rem]">Next Word</button>}
+                <button onClick={()=>{ setShowWin(false); }} className="shade-btn-neutral text-[0.75rem]">Close</button>
               </div>
             </div>
           </div>
@@ -226,8 +244,8 @@ export const App: React.FC = () => {
               <button onClick={()=>{ setShowStats(false); playSfx('modalClose'); }} className="text-slate-400 hover:text-slate-200 text-sm active:scale-95 transition-transform">Close</button>
             </div>
             <div className="flex gap-2 mb-4">
-                <button onClick={()=>{ const payload = buildGamerShareText(gamerGame.dateKey, gamerGame.guesses, gamerGame.states, gamerGame.solved, gamerGame.prompt); shareResult(payload); playSfx('share'); }} className="bg-brand hover:bg-brand-dark text-white font-semibold text-sm px-3 py-2 rounded-md transition-colors active:scale-95">Share</button>
-              <button onClick={()=>{navigator.clipboard?.writeText(JSON.stringify({puzzle: gamerGame.dateKey, attempts: gamerGame.guesses.length}));}} className="border border-slate-600 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-[0.7rem] px-3 py-2 rounded-md transition-colors">Copy Meta</button>
+                <button onClick={()=>{ const payload = buildGamerShareText(gamerGame.dateKey, gamerGame.guesses, gamerGame.states, gamerGame.solved, gamerGame.prompt); shareResult(payload); playSfx('share'); }} className="shade-btn-accent">Share</button>
+                <button onClick={()=>{navigator.clipboard?.writeText(JSON.stringify({puzzle: gamerGame.dateKey, attempts: gamerGame.guesses.length}));}} className="shade-btn-neutral">Copy Meta</button>
             </div>
               <div className="text-sm text-slate-300 mb-4">Attempts: {gamerGame.guesses.length}/{gamerGame.maxGuesses} {gamerGame.solved && '• Solved'} {gamerGame.solved && `| Answer: ${gamerGame.answer.toUpperCase()}`}</div>
               <ol className="space-y-1 mb-2 text-[0.7rem] font-mono text-slate-400">

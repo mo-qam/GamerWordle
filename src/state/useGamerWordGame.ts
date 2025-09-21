@@ -25,7 +25,24 @@ export function useGamerWordGame(dateKeyOverride?: string, endless?: boolean){
     return getDailyGamerWord();
   }, [dateKeyOverride, endless]);
   const [meta, setMeta] = useState(initialMeta);
-  useEffect(()=>{ if(!endless){ setMeta(initialMeta); } }, [initialMeta, endless]);
+  const [promptHistory, setPromptHistory] = useState<string[]>([initialMeta.prompt]);
+  const [promptIndex, setPromptIndex] = useState(0);
+  // When not in endless, keep meta in sync with daily; when switching into endless, force a fresh random word.
+  useEffect(()=>{
+    if(!endless){
+      setMeta(initialMeta);
+      setGuesses([]); setStates([]); setSolvedAt(undefined);
+      setPromptHistory([initialMeta.prompt]);
+      setPromptIndex(0);
+    } else {
+      // entering endless mode: generate a fresh word immediately
+      const next = getRandomGamerWord();
+      setMeta(next);
+      setGuesses([]); setStates([]); setSolvedAt(undefined);
+      setPromptHistory([next.prompt]);
+      setPromptIndex(0);
+    }
+  }, [initialMeta, endless]);
   const { answer, dateKey, prompt, maxGuesses, wordLength } = meta;
   const [guesses, setGuesses] = useState<string[]>([]);
   const [states, setStates] = useState<LetterState[][]>([]);
@@ -52,10 +69,11 @@ export function useGamerWordGame(dateKeyOverride?: string, endless?: boolean){
     if(guesses.length >= maxGuesses) return { ok:false, reason:'limit' as const };
     if(solvedAt) return { ok:false, reason:'solved' as const };
     const evalStates = evaluateGuess(guess, answer);
+    const solvedNow = evalStates.every(s=>s==='correct');
     setGuesses(g=>[...g, guess]);
     setStates(s=>[...s, evalStates]);
-    if(evalStates.every(s=>s==='correct')) setSolvedAt(Date.now());
-    return { ok:true } as const;
+    if(solvedNow) setSolvedAt(Date.now());
+    return { ok:true, solvedNow } as const;
   }, [answer, guesses.length, maxGuesses, solvedAt, wordLength]);
 
   const keyboardStates = useMemo(()=>{
@@ -98,13 +116,28 @@ export function useGamerWordGame(dateKeyOverride?: string, endless?: boolean){
     wordLength,
     progress,
     restart: () => {
+      const next = endless ? getRandomGamerWord() : getDailyGamerWord();
+      setMeta(next);
+      setGuesses([]);
+      setStates([]);
+      setSolvedAt(undefined);
       if(endless){
-        const next = getRandomGamerWord();
-        setMeta(next);
-        setGuesses([]);
-        setStates([]);
-        setSolvedAt(undefined);
+        setPromptHistory(h=>[...h, next.prompt]);
+        setPromptIndex(p=>p+1);
+      } else {
+        setPromptHistory([next.prompt]);
+        setPromptIndex(0);
       }
-    }
+    },
+    cyclePrompt: () => {
+      if(!endless) return;
+      const next = getRandomGamerWord();
+      setMeta(next);
+      setGuesses([]); setStates([]); setSolvedAt(undefined);
+      setPromptHistory(h=>[...h, next.prompt]);
+      setPromptIndex(p=>p+1);
+    },
+    promptHistory,
+    promptIndex
   };
 }
