@@ -6,6 +6,7 @@ import { shareResult } from '../logic/share';
 import { buildGamerShareText } from '../logic/gamerShare';
 import { playSfx, initSfxPreference, setSfxEnabled, getSfxEnabled } from '../audio/sfx';
 import { Confetti } from '../components/Confetti';
+import { Fireworks } from '../components/Fireworks';
 import { LogoMark } from '../components/LogoMark';
 import { HowToSection } from '../components/sections/HowToSection';
 import { TipsSection } from '../components/sections/TipsSection';
@@ -18,7 +19,9 @@ export const App: React.FC = () => {
   const [theme, setTheme] = useState<'dark'|'light'>(()=> (localStorage.getItem('pnd_theme') as 'dark'|'light') || 'dark');
   const [sfxEnabled, setSfxEnabledState] = useState<boolean>(true);
   const [activeDate, setActiveDate] = useState<string | undefined>(undefined);
-  const gamerGame = useGamerWordGame(activeDate);
+  const [endless, setEndless] = useState(false);
+  const gamerGame = useGamerWordGame(activeDate, endless);
+  const [showWin, setShowWin] = useState(false);
   const [currentInput, setCurrentInput] = useState('');
   const [slState, setSlState] = useState(()=> loadStreakLevel());
   React.useEffect(()=>{ initSfxPreference().then(()=> setSfxEnabledState(getSfxEnabled())); }, []);
@@ -61,6 +64,7 @@ export const App: React.FC = () => {
     }
     if(gamerGame.solved){
       setFailedNotified(true); // lock further failure notice
+      setShowWin(true);
     }
   }, [gamerGame.failed, gamerGame.solved, gamerGame.answer, failedNotified]);
   function attemptSubmit(){
@@ -109,6 +113,7 @@ export const App: React.FC = () => {
           </h1>
           <div className="absolute -bottom-1 left-[5.2rem] md:left-[5.6rem] right-0 h-px bg-gradient-to-r from-indigo-400/70 via-fuchsia-400/60 to-transparent pointer-events-none hidden md:block" />
           <div className="flex gap-1.5 md:gap-2 items-center ml-auto flex-nowrap md:whitespace-nowrap mt-2 md:mt-0">
+          {endless && <span className="px-2 py-1 rounded-md bg-indigo-600/70 text-[0.55rem] font-semibold tracking-wide uppercase text-indigo-50 border border-indigo-400/40">Endless</span>}
           <div className="flex items-center gap-1.5 text-[0.52rem] font-semibold tracking-wide bg-slate-700/50 dark:bg-slate-700/60 px-1.5 py-1 rounded border border-slate-500/40">
             <div className="flex flex-col items-center leading-none">
               <span>STREAK</span>
@@ -195,6 +200,24 @@ export const App: React.FC = () => {
       <footer className="mx-auto max-w-3xl px-4 pb-8 text-center text-[0.65rem] text-slate-500 dark:text-slate-500">
   <small>&copy; {new Date().getFullYear()} GamerWordle</small>
       </footer>
+      {showWin && gamerGame.solved && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm anim-fade-scale">
+          <div className="relative w-[min(520px,92%)] rounded-2xl border border-indigo-400/30 bg-slate-900/90 p-6 shadow-2xl">
+            <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-indigo-500/20 via-fuchsia-500/10 to-transparent pointer-events-none" />
+            <div className="relative">
+              <h2 className="text-xl font-extrabold tracking-wide mb-2 bg-gradient-to-r from-indigo-300 via-pink-300 to-rose-300 bg-clip-text text-transparent">Puzzle Solved!</h2>
+              <p className="text-sm text-slate-300 mb-4">Answer: <span className="font-semibold text-white">{gamerGame.answer.toUpperCase()}</span></p>
+              <div className="flex flex-wrap gap-2 mb-4">
+                <button onClick={()=>{ const payload = buildGamerShareText(gamerGame.dateKey, gamerGame.guesses, gamerGame.states, gamerGame.solved, gamerGame.prompt); shareResult(payload); playSfx('share'); }} className="bg-brand hover:bg-brand-dark text-white font-semibold text-sm px-4 py-2 rounded-md active:scale-95 transition">Share Result</button>
+                <button onClick={()=>{ setShowWin(false); setEndless(true); gamerGame.restart(); playSfx('modalOpen'); }} className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm px-4 py-2 rounded-md active:scale-95 transition">Start Endless</button>
+                {endless && <button onClick={()=>{ gamerGame.restart(); playSfx('enterKey'); }} className="border border-slate-600 text-slate-200 hover:bg-slate-800 text-sm px-4 py-2 rounded-md active:scale-95 transition">Next Word</button>}
+                <button onClick={()=>{ setShowWin(false); }} className="border border-slate-600 text-slate-300 hover:text-white hover:bg-slate-800 text-sm px-4 py-2 rounded-md active:scale-95 transition">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {showWin && <Fireworks trigger={showWin} />}
       {showStats && (
         <div className="fixed inset-0 z-40 flex justify-center items-start pt-[8vh] bg-slate-900/80 backdrop-blur-sm anim-fade-scale">
           <div className="w-[min(520px,90%)] rounded-xl border border-slate-700/60 bg-slate-900/90 p-5 shadow-2xl">

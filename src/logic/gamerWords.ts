@@ -46,3 +46,12 @@ export function getGamerWordForDate(key: string): DailyGamerWord {
   if(!/^\d{4}-\d{1,2}-\d{1,2}$/.test(key)) return getDailyGamerWord();
   return getDailyGamerWord(key);
 }
+
+// Endless mode: choose a random word independent of date each time.
+export function getRandomGamerWord(): DailyGamerWord {
+  const idx = Math.floor(Math.random() * GAMER_WORD_CANDIDATES.length);
+  const answer = GAMER_WORD_CANDIDATES[idx];
+  const cat = wordToCategory[answer];
+  const prompt = `Category: ${cat.label}`;
+  return { answer, dateKey: 'endless-' + Date.now(), categoryId: cat.id, categoryLabel: cat.label, prompt, wordLength: GAMER_WORD_LENGTH, maxGuesses: GAMER_WORD_MAX_GUESSES };
+}

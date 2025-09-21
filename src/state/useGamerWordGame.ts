@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { evaluateGuess, LetterState } from '../logic/classicEval';
-import { getDailyGamerWord, getGamerWordForDate, GAMER_WORD_MAX_GUESSES, GAMER_WORD_LENGTH } from '../logic/gamerWords';
+import { getDailyGamerWord, getGamerWordForDate, getRandomGamerWord, GAMER_WORD_MAX_GUESSES, GAMER_WORD_LENGTH } from '../logic/gamerWords';
 
 interface StoredGamerWord {
   dateKey: string;
@@ -18,11 +18,14 @@ function load(key: string): StoredGamerWord | null {
 }
 function save(val: StoredGamerWord) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(val)); } catch {} }
 
-export function useGamerWordGame(dateKeyOverride?: string){
-  const meta = useMemo(()=>{
+export function useGamerWordGame(dateKeyOverride?: string, endless?: boolean){
+  const initialMeta = useMemo(()=>{
+    if(endless) return getRandomGamerWord();
     if(dateKeyOverride) return getGamerWordForDate(dateKeyOverride);
     return getDailyGamerWord();
-  }, [dateKeyOverride]);
+  }, [dateKeyOverride, endless]);
+  const [meta, setMeta] = useState(initialMeta);
+  useEffect(()=>{ if(!endless){ setMeta(initialMeta); } }, [initialMeta, endless]);
   const { answer, dateKey, prompt, maxGuesses, wordLength } = meta;
   const [guesses, setGuesses] = useState<string[]>([]);
   const [states, setStates] = useState<LetterState[][]>([]);
@@ -93,6 +96,15 @@ export function useGamerWordGame(dateKeyOverride?: string){
     remaining: maxGuesses - guesses.length,
     maxGuesses,
     wordLength,
-    progress
+    progress,
+    restart: () => {
+      if(endless){
+        const next = getRandomGamerWord();
+        setMeta(next);
+        setGuesses([]);
+        setStates([]);
+        setSolvedAt(undefined);
+      }
+    }
   };
 }
