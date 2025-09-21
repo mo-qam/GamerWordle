@@ -195,21 +195,33 @@ import { RateSection } from '../components/sections/RateSection';
               <div className="h-full bg-gradient-to-r from-brand to-brand-dark" style={{ width: `${Math.min(100, (slState.xp / levelXpRequirement(slState.level)) * 100)}%` }} />
             </div>
           </div>
-          <button onClick={()=>setTheme(t=> t==='dark'?'light':'dark')} className="shade-btn-neutral flex items-center gap-1 order-3 md:order-none">
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              {theme==='dark'? <circle cx="12" cy="12" r="5" /> : <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />}
-            </svg>
-            {theme==='dark'?'Light':'Dark'}
+          <button
+            onClick={()=>setTheme(t=> t==='dark'?'light':'dark')}
+            className="shade-btn-neutral flex items-center gap-1 order-3 md:order-none"
+            title={theme==='dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            aria-label={theme==='dark' ? 'Light Mode' : 'Dark Mode'}
+          >
+            {theme==='dark'
+              ? (<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5" /></svg>)
+              : (<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>)}
           </button>
-          <button onClick={()=>{ setShowStats(s=>!s); playSfx(showStats? 'modalClose':'modalOpen'); }} className="shade-btn-neutral flex items-center gap-1 order-1 md:order-none">
+          <button
+            onClick={()=>{ setShowStats(s=>!s); playSfx(showStats? 'modalClose':'modalOpen'); }}
+            className="shade-btn-neutral flex items-center gap-1 order-1 md:order-none"
+            title="Stats"
+            aria-label="Stats"
+          >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20v-6"/><path d="M6 20V10"/><path d="M18 20V4"/></svg>
-            Stats
           </button>
-          <button onClick={()=>{ const next = !sfxEnabled; setSfxEnabled(next); setSfxEnabledState(next); playSfx('hintReveal'); }} className={`flex items-center gap-1 order-2 md:order-none ${sfxEnabled? 'shade-btn-primary':'shade-btn-neutral'}`}> 
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              {sfxEnabled ? <path d="M11 5 6 9H2v6h4l5 4V5z"/> : <><path d="m2 2 20 20" /><path d="M11 5 6 9H2v6h4l5 4V5z"/></>}
-            </svg>
-            {sfxEnabled? 'SFX':'Muted'}
+          <button
+            onClick={()=>{ const next = !sfxEnabled; setSfxEnabled(next); setSfxEnabledState(next); playSfx('hintReveal'); }}
+            className={`flex items-center gap-1 order-2 md:order-none ${sfxEnabled? 'shade-btn-primary':'shade-btn-neutral'}`}
+            title={sfxEnabled ? 'Mute SFX' : 'Enable SFX'}
+            aria-label={sfxEnabled ? 'SFX On' : 'SFX Off'}
+          >
+            {sfxEnabled
+              ? (<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/></svg>)
+              : (<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m2 2 20 20" /><path d="M11 5 6 9H2v6h4l5 4V5z"/></svg>)}
           </button>
           </div>
         </div>
