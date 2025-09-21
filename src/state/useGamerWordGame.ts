@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { evaluateGuess, LetterState } from '../logic/classicEval';
-import { getDailyGamerWord, getGamerWordForDate, getRandomGamerWord, GAMER_WORD_MAX_GUESSES, GAMER_WORD_LENGTH } from '../logic/gamerWords';
+import { ALL_CATEGORIES } from '../data/terms';
+import { CATEGORY_WORDS } from '../data/categoryWords';
+import { DAILY_WORDLE_POOL } from '../data/dailyWordlePool';
+import { seedHash, mulberry32 } from '../logic/rng';
 
 interface StoredGamerWord {
   dateKey: string;
@@ -18,12 +21,59 @@ function load(key: string): StoredGamerWord | null {
 }
 function save(val: StoredGamerWord) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(val)); } catch {} }
 
-export function useGamerWordGame(dateKeyOverride?: string, endless?: boolean){
+export function useGamerWordGame(dateKeyOverride?: string, endless?: boolean, categoryId?: string){
+  // Helper to get candidate pool
+  const getCandidates = () => {
+    if(categoryId && categoryId !== 'all') {
+      return CATEGORY_WORDS[categoryId] || [];
+    }
+    return DAILY_WORDLE_POOL;
+  };
+
+  // Helper to get word-to-category
+  const getWordToCategory = () => {
+    const map: Record<string,{id:string;label:string}> = {};
+    for(const cat of ALL_CATEGORIES){
+      const words = CATEGORY_WORDS[cat.id] || [];
+      for(const w of words){
+        const lower = w.toLowerCase();
+        if(!map[lower]){
+          map[lower] = { id: cat.id, label: cat.label };
+        }
+      }
+    }
+    return map;
+  };
+
+  // Custom daily and random word functions
+  const getDailyWord = (dateStr?: string) => {
+    const pool = getCandidates();
+    const wordToCategory = getWordToCategory();
+    const date = dateStr ? new Date(dateStr) : new Date();
+    const key = date.getUTCFullYear() + '-' + (date.getUTCMonth()+1) + '-' + date.getUTCDate();
+    const h = seedHash('gamerwords:' + key + ':' + (categoryId || 'all'));
+    const rand = mulberry32(h);
+    const idx = Math.floor(rand() * pool.length);
+    const answer = pool[idx];
+    const cat = wordToCategory[answer];
+    const prompt = cat ? `Category: ${cat.label}` : '';
+    return { answer, dateKey: key, categoryId: cat?.id || '', categoryLabel: cat?.label || '', prompt, wordLength: 5, maxGuesses: 6 };
+  };
+  const getRandomWord = () => {
+    const pool = getCandidates();
+    const wordToCategory = getWordToCategory();
+    const idx = Math.floor(Math.random() * pool.length);
+    const answer = pool[idx];
+    const cat = wordToCategory[answer];
+    const prompt = cat ? `Category: ${cat.label}` : '';
+    return { answer, dateKey: 'endless-' + Date.now(), categoryId: cat?.id || '', categoryLabel: cat?.label || '', prompt, wordLength: 5, maxGuesses: 6 };
+  };
+
   const initialMeta = useMemo(()=>{
-    if(endless) return getRandomGamerWord();
-    if(dateKeyOverride) return getGamerWordForDate(dateKeyOverride);
-    return getDailyGamerWord();
-  }, [dateKeyOverride, endless]);
+    if(endless) return getRandomWord();
+    if(dateKeyOverride) return getDailyWord(dateKeyOverride);
+    return getDailyWord();
+  }, [dateKeyOverride, endless, categoryId]);
   const [meta, setMeta] = useState(initialMeta);
   const [promptHistory, setPromptHistory] = useState<string[]>([initialMeta.prompt]);
   const [promptIndex, setPromptIndex] = useState(0);
@@ -36,7 +86,7 @@ export function useGamerWordGame(dateKeyOverride?: string, endless?: boolean){
       setPromptIndex(0);
     } else {
       // entering endless mode: generate a fresh word immediately
-      const next = getRandomGamerWord();
+      const next = getRandomWord();
       setMeta(next);
       setGuesses([]); setStates([]); setSolvedAt(undefined);
       setPromptHistory([next.prompt]);
@@ -116,7 +166,7 @@ export function useGamerWordGame(dateKeyOverride?: string, endless?: boolean){
     wordLength,
     progress,
     restart: () => {
-      const next = endless ? getRandomGamerWord() : getDailyGamerWord();
+      const next = endless ? getRandomWord() : getDailyWord();
       setMeta(next);
       setGuesses([]);
       setStates([]);
@@ -131,7 +181,7 @@ export function useGamerWordGame(dateKeyOverride?: string, endless?: boolean){
     },
     cyclePrompt: () => {
       if(!endless) return;
-      const next = getRandomGamerWord();
+      const next = getRandomWord();
       setMeta(next);
       setGuesses([]); setStates([]); setSolvedAt(undefined);
       setPromptHistory(h=>[...h, next.prompt]);

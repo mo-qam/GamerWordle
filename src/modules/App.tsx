@@ -1,3 +1,4 @@
+import { ALL_CATEGORIES } from '../data/terms';
 import React, { useState } from 'react';
 import { useGamerWordGame } from '../state/useGamerWordGame';
 import { loadStreakLevel, saveStreakLevel, awardForPuzzle, levelXpRequirement } from '../state/streakLevel';
@@ -15,12 +16,13 @@ import { BenefitsSection } from '../components/sections/BenefitsSection';
 import { RateSection } from '../components/sections/RateSection';
 
 export const App: React.FC = () => {
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [showStats, setShowStats] = useState(false);
   const [theme, setTheme] = useState<'dark'|'light'>(()=> (localStorage.getItem('pnd_theme') as 'dark'|'light') || 'dark');
   const [sfxEnabled, setSfxEnabledState] = useState<boolean>(true);
   const [activeDate, setActiveDate] = useState<string | undefined>(undefined);
   const [endless, setEndless] = useState(false);
-  const gamerGame = useGamerWordGame(activeDate, endless);
+  const gamerGame = useGamerWordGame(activeDate, endless, selectedCategory);
   const [showWin, setShowWin] = useState(false);
   const [currentInput, setCurrentInput] = useState('');
   const [slState, setSlState] = useState(()=> loadStreakLevel());
@@ -118,11 +120,27 @@ export const App: React.FC = () => {
               <LogoMark className="relative w-7 h-7" />
             </div>
           </div>
-          <h1 className="m-0 flex-shrink text-[0.95rem] sm:text-base md:text-[1.18rem] font-extrabold tracking-[0.12em] sm:tracking-[0.16em] md:tracking-[0.18em] uppercase leading-none md:leading-snug flex items-baseline gap-1 max-w-[72vw] md:max-w-none">
-            <span className="text-indigo-300 drop-shadow-[0_0_6px_rgba(99,102,241,0.55)]">Gamer</span>
-            <span className="text-pink-300 drop-shadow-[0_0_6px_rgba(236,72,153,0.55)]">Wordle</span>
-            <span className="sr-only">GamerWordle</span>
-          </h1>
+          <div className="flex flex-col gap-1">
+            <h1 className="m-0 flex-shrink text-[0.95rem] sm:text-base md:text-[1.18rem] font-extrabold tracking-[0.12em] sm:tracking-[0.16em] md:tracking-[0.18em] uppercase leading-none md:leading-snug flex items-baseline gap-1 max-w-[72vw] md:max-w-none">
+              <span className="text-indigo-300 drop-shadow-[0_0_6px_rgba(99,102,241,0.55)]">Gamer</span>
+              <span className="text-pink-300 drop-shadow-[0_0_6px_rgba(236,72,153,0.55)]">Wordle</span>
+              <span className="sr-only">GamerWordle</span>
+            </h1>
+            <div className="mt-1">
+              <label htmlFor="category-select" className="text-xs text-slate-400 mr-2">Category:</label>
+              <select
+                id="category-select"
+                value={selectedCategory}
+                onChange={e => setSelectedCategory(e.target.value)}
+                className="shade-btn-neutral text-xs px-2 py-1 rounded"
+              >
+                <option value="all">All</option>
+                {ALL_CATEGORIES.map(cat => (
+                  <option key={cat.id} value={cat.id}>{cat.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
           <div className="absolute -bottom-1 left-[5.2rem] md:left-[5.6rem] right-0 h-px bg-gradient-to-r from-indigo-400/70 via-fuchsia-400/60 to-transparent pointer-events-none hidden md:block" />
           <div className="flex gap-1.5 md:gap-2 items-center ml-auto flex-nowrap md:whitespace-nowrap mt-2 md:mt-0">
           {endless && <span className="px-2 py-1 rounded-md bg-indigo-600/70 text-[0.55rem] font-semibold tracking-wide uppercase text-indigo-50 border border-indigo-400/40">Endless</span>}
