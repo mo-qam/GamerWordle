@@ -15,8 +15,8 @@ import { FAQSection } from '../components/sections/FAQSection';
 import { BenefitsSection } from '../components/sections/BenefitsSection';
 import { RateSection } from '../components/sections/RateSection';
 
-export const App: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [showCategoryMenu, setShowCategoryMenu] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const [theme, setTheme] = useState<'dark'|'light'>(()=> (localStorage.getItem('pnd_theme') as 'dark'|'light') || 'dark');
   const [sfxEnabled, setSfxEnabledState] = useState<boolean>(true);
@@ -113,7 +113,7 @@ export const App: React.FC = () => {
     <div className="pointer-events-none absolute inset-0 opacity-[0.07] pattern-grid" />
   <Confetti trigger={gamerGame.solved} />
       <header className="mx-auto max-w-xl px-3 sm:px-4 pt-[calc(0.65rem+env(safe-area-inset-top))] pb-2 border-b border-[#3a3a3c]">
-        <div className="flex items-start md:items-center gap-2 md:gap-3 flex-wrap md:flex-nowrap relative">
+        <div className="flex flex-row items-center justify-between gap-2 md:gap-3 flex-wrap md:flex-nowrap relative w-full">
           <div className="relative">
             <div className="absolute inset-0 rounded-md bg-gradient-to-br from-indigo-600/40 via-fuchsia-600/35 to-rose-600/35 blur-[3px]" />
             <div className="p-1 rounded-md border border-indigo-400/40 backdrop-blur-sm bg-[#0f172abf] shadow-[0_0_0_1px_rgba(255,255,255,0.05),0_4px_12px_-2px_rgba(0,0,0,0.6)]">
@@ -126,21 +126,53 @@ export const App: React.FC = () => {
               <span className="text-pink-300 drop-shadow-[0_0_6px_rgba(236,72,153,0.55)]">Wordle</span>
               <span className="sr-only">GamerWordle</span>
             </h1>
-            <div className="mt-1">
-              <label htmlFor="category-select" className="text-xs text-slate-400 mr-2">Category:</label>
-              <select
-                id="category-select"
-                value={selectedCategory}
-                onChange={e => setSelectedCategory(e.target.value)}
-                className="shade-btn-neutral text-xs px-2 py-1 rounded"
+            <div className="flex gap-2 mt-1 items-center">
+              {selectedCategory !== 'all' && (
+                <button
+                  className="shade-btn-primary text-xs px-2 py-1"
+                  onClick={() => setSelectedCategory('all')}
+                  title="Back to Daily Wordle"
+                >
+                  Back to Daily
+                </button>
+              )}
+              <button
+                className="shade-btn-neutral flex items-center px-2 py-1"
+                onClick={() => setShowCategoryMenu(true)}
+                title="Choose Category"
               >
-                <option value="all">All</option>
-                {ALL_CATEGORIES.map(cat => (
-                  <option key={cat.id} value={cat.id}>{cat.label}</option>
-                ))}
-              </select>
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="4" y1="6" x2="20" y2="6" />
+                  <line x1="4" y1="12" x2="20" y2="12" />
+                  <line x1="4" y1="18" x2="20" y2="18" />
+                </svg>
+              </button>
             </div>
           </div>
+      {showCategoryMenu && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={()=>setShowCategoryMenu(false)}>
+          <div className="bg-slate-900 rounded-xl border border-slate-700 shadow-xl p-5 min-w-[220px]" onClick={e=>e.stopPropagation()}>
+            <h2 className="text-base font-bold mb-3 text-slate-200">Choose Category</h2>
+            <ul className="flex flex-col gap-2">
+              <li>
+                <button
+                  className={`shade-btn-neutral w-full text-left px-3 py-2 ${selectedCategory==='all'?'bg-indigo-600 text-white':''}`}
+                  onClick={()=>{ setSelectedCategory('all'); setShowCategoryMenu(false); }}
+                >Daily Wordle</button>
+              </li>
+              {ALL_CATEGORIES.map(cat => (
+                <li key={cat.id}>
+                  <button
+                    className={`shade-btn-neutral w-full text-left px-3 py-2 ${selectedCategory===cat.id?'bg-indigo-600 text-white':''}`}
+                    onClick={()=>{ setSelectedCategory(cat.id); setShowCategoryMenu(false); }}
+                  >{cat.label}</button>
+                </li>
+              ))}
+            </ul>
+            <button className="mt-4 shade-btn-danger w-full" onClick={()=>setShowCategoryMenu(false)}>Close</button>
+          </div>
+        </div>
+      )}
           <div className="absolute -bottom-1 left-[5.2rem] md:left-[5.6rem] right-0 h-px bg-gradient-to-r from-indigo-400/70 via-fuchsia-400/60 to-transparent pointer-events-none hidden md:block" />
           <div className="flex gap-1.5 md:gap-2 items-center ml-auto flex-nowrap md:whitespace-nowrap mt-2 md:mt-0">
           {endless && <span className="px-2 py-1 rounded-md bg-indigo-600/70 text-[0.55rem] font-semibold tracking-wide uppercase text-indigo-50 border border-indigo-400/40">Endless</span>}
@@ -274,4 +306,4 @@ export const App: React.FC = () => {
       )}
     </div>
   );
-};
+
