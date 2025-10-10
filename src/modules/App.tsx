@@ -15,6 +15,7 @@ import { FAQSection } from '../components/sections/FAQSection';
 import { BenefitsSection } from '../components/sections/BenefitsSection';
 import { RateSection } from '../components/sections/RateSection';
 
+export const App: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
   const [showStats, setShowStats] = useState(false);
@@ -318,4 +319,5 @@ import { RateSection } from '../components/sections/RateSection';
       )}
     </div>
   );
+};
 
